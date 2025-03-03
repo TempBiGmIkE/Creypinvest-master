@@ -1,0 +1,236 @@
+{% extends 'dashboard_base.html' %} 
+{% block css %} 
+<style>
+  input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+-webkit-appearance: none; 
+margin: 0; 
+}
+</style>
+{% include 'dashboard/dashboard_home_style.html' %} {% endblock css %} 
+{% block head_title %}{{title}}{% endblock head_title %} 
+{% block content %}
+<div class="home-container">
+  <div class="row m-0">
+    <div class="col-md-7 col-12">
+      <div class="row">
+        <div class="col-12 mb-4">
+          <div class="row box-right" onclick="toggleAmount()">
+            <div class="col-md-8 ps-0">
+              <p class="ps-3 textmuted fw-bold h6 mb-0">
+                AVAILABLE BALANCE
+              </p>
+              <p
+                class="h1 fw-bold d-flex"
+                id="bitcoin-toggle"
+                data-{{request.user.username}}-balance="{{bal}}"
+              >
+                <span
+                  class="fas fa-dollar-sign textmuted pe-1 h6 align-text-top mt-1"
+                ></span
+                >{{first_bal}} <span class="textmuted">.{{second_bal}}</span>
+              </p>
+              <!-- In Bitcoin -->
+              <p
+                class="h1 fw-bold d-flex d-none"
+                id="bitcoin-toggle"
+                data-{{request.user.username}}-balance="{{bal}}"
+              >
+                <span
+                  class="lab la-bitcoin textmuted pe-1 h6 align-text-top mt-1"
+                ></span>
+                <span
+                  class="bitcoin-amount"
+                  id="bitcoin-div"
+                  data-{{request.user.username}}-balance="{{bal}}"
+                >
+                  <span class="bitcoin_first">{{first_bal}}</span
+                  ><span class="bitcoin_last sm textmuted"
+                    >.{{second_bal}}</span
+                  >
+                </span>
+              </p>
+              {% if returns %}
+              <p class="ms-3 px-2 bg-green">{{returns}}</p>
+              {% endif %} {% if bad and returns == '' %}
+              <p class="ms-3 px-2 bg-red">{{bad}}</p>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              {% if pending %}
+              <p class="p-blue">
+                <span class="fas fa-circle pe-2"></span>Pending
+              </p>
+              <p class="fw-bold mb-3">
+                <span class="fas fa-dollar-sign pe-1"></span>00
+                <span class="textmuted">.00</span>
+              </p>
+              {% endif %} {% if drafts %}
+              <p class="p-org">
+                <span class="fas fa-circle pe-2"></span>On drafts
+              </p>
+              <p class="fw-bold">
+                <span class="fas fa-dollar-sign pe-1"></span>00<span
+                  class="textmuted"
+                  >.00</span
+                >
+              </p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <div class="col-12 px-0 mb-4">
+          <form action="{% url 'withdraw_window' %}" autocomplete="off" method="POST" class="box-right">
+            {% csrf_token %}
+            <div class="d-flex mb-2">
+              <p class="fw-bold">Cash-Out</p>
+              <p class="ms-auto textmuted">
+                <button
+                  class="fas fa-arrow-right fw-bold cash-out-btn waves-effect waves-dark"
+                  type="submit"
+                ></button>
+              </p>
+            </div>
+            <div class="d-flex mb-2">
+              <p class="h7">Min. $10,000 - Max. $100,000</p>
+            </div>
+            {% if request.GET.e %}
+            <div class="d-flex mb-2 mt-2">
+            <p class="h8" style="color: rgb(240, 56, 56);">
+              {% if request.GET.e == 'bal' %}bal: {{user.profile.wallet.balance}} - Insufficient Funds{% endif %}
+              {% if request.GET.e == 'pin' %}Pin Not Correct{% endif %}
+              {% if request.GET.e == 'low' %}The minimum is $10,000{% endif %}
+              {% if request.GET.e == 'high' %}The maximum is $100,000{% endif %}
+              {% if request.GET.e == 'yes' %}Something went wrong, try again later{% endif %}
+              {% if request.GET.e == 'null' %}Make sure all fields below are valid{% endif %}
+            </p>
+          </div>
+            {% endif %}
+            <div class="row">
+              <div class="col-12 mb-2">
+                <p class="textmuted h8">Your Bitcoin Address</p>
+                <input
+                  class="form-control"
+                  type="text"
+                  value="{{user.profile.wallet.btc_address}}"
+                  placeholder=""
+                />
+              </div>
+              <div class="col-6">
+                <p class="textmuted h8">USD</p>
+                <div class="d-flex form-control"> <span class="fas fa-dollar-sign textmuted mt-1 fw-bold font-bold"></span> 
+                <input class="w-100 border-0 textmuted fw-bold font-bold" min="10000" max="100000" id="usd_input" name="price" type="number" placeholder="00.00" required="true"/>
+              </div>
+              </div>
+              <div class="col-6" style="pointer-events: none;">
+                <p class="textmuted h8">BTC</p>
+                <div class="d-flex form-control"> <span class="lab la-bitcoin textmuted mt-1 fw-bold font-bold"></span> 
+                  <input class="w-100 border-0 textmuted fw-bold font-bold" id="btc_input" disabled min="0" autocomplete="false" readonly onfocus="this.removeAttribute('readonly')" name="price_btc" type="number" placeholder="00.00" required="true"/>
+                </div>
+              </div>
+              {% if user.profile.wallet.pin %}
+              <div class="col-12 mt-2">
+                <p class="textmuted h8">PIN</p>
+                  <input class="form-control textmuted fw-bold font-bold" minlength="6" maxlength="6" name="pin" type="text" placeholder="" required="true"/>
+              </div>
+              {% endif %}
+              <div class="col-12 mt-2">
+                <p class="textmuted h8">
+                  AUTHORIZATION PIN
+                </p>
+                  <input class="form-control textmuted fw-bold font-bold" minlength="6" maxlength="6" name="auth-pin" type="text" placeholder="" required="true"/>
+                  <span style="font-size: 0.75rem; font-weight: 400;"><span style="color: rgb(57, 57, 232); font-weight: 600;cursor: pointer;" id="contact-us-btn">Contact us</span> to get your authorization pin</span>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-5 col-12 ps-md-2 p-0">
+        <div class="box-left d-none">
+          <!-- <h1>u nor get sense</h1> -->
+        </div>
+        <div class="box-left">
+            <div class="d-flex mb-2">
+                <p class="fw-bold">Transactions</p>
+              </div>
+              <ol class="activity-feed activity-container" style="{% if transactions.count > 4 %}height: 330px;{% endif %}">
+                {% for transaction in transactions %}
+                <{% if transaction.status == "processing" and transactions.first == transaction %}a href="/auth/withdraw/auth/start-window/" style="cursor:pointer;" {% else %}li{% endif %} data-status="{{transaction.status}}" class="feed-item {% if transaction.status == 'credit' %}credit{% elif transaction.status == 'failed' %}failed{% elif transaction.status == 'pending' %}d-nonev{% endif %}">
+                <time class="date" datetime="{{transaction.timestamp|date:'m'}}-{{transaction.timestamp|date:'d'}}">{{transaction.timestamp|date:"F"}} {{transaction.timestamp|date:"d"}} - 
+                  {{transaction.timestamp|date:"g"}}:{{transaction.timestamp|date:"i"}}{{transaction.timestamp|date:"A"}}</time>
+                  <span class="text">{{transaction.msg}}</a></span>
+                    </{% if transaction.status == "processing" and transactions.first == transaction %}a{% else %}li{% endif %}>
+                {% endfor %}
+              </ol>
+          </div>
+      </div>
+  </div>
+</div>
+<script>
+  const contactUsBtn = document.getElementById("contact-us-btn")
+  if (contactUsBtn){
+    contactUsBtn.addEventListener("click", () => {
+      let params = {start: 'chat'};
+      let apiResult = jivo_api.open(params);
+
+      if (apiResult.result === 'fail') {
+          console.log('Widget failed to open');
+      } else {
+          console.log('Widget open successfully');
+      }
+    })
+  }
+</script>
+<script>
+  var usdInput = document.getElementById("usd_input");
+  var btcInput = document.getElementById("btc_input");
+  var btc_current_price = localStorage.getItem("btc_current_price");
+
+  usdInput.addEventListener("keyup", function(e){
+    btcReload();
+    if (usdInput.value === ""){
+      btcInput.value = ""
+    }else{
+      if(btcInput && btc_current_price && usdInput.value !== ""){
+        btcInput.value = (usdInput.value / btc_current_price).toFixed(6)
+      }else{
+        // window.location.reload();
+      }
+    }
+  })
+  btcInput.addEventListener("keyup", function(e){
+    btcReload();
+    if (btcInput.value === ""){
+      usdInput.value = ""
+    }else{
+      if(usdInput && btc_current_price && btcInput.value !== ""){
+        usdInput.value = (btc_current_price * btcInput.value).toFixed(2)
+      }else{
+        // window.location.reload();
+      }
+    }
+  });
+</script>
+<script>
+  function btcReload(){
+    let timer;
+    clearTimeout(timer);
+    // BTC CURRENT PRICE
+    var bitcoinPrice = new XMLHttpRequest();
+    bitcoinPrice.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+          localStorage.setItem("btc_current_price", JSON.parse(this.responseText).RAW.BTC.USD.PRICE)
+        }
+      };
+      bitcoinPrice.open(
+        "GET",
+        "https://min-api.cryptocompare.com/data/pricemultifull?fsyms=BTC&tsyms=USD",
+        true
+        );
+    timer = setTimeout(() => {
+      bitcoinPrice.send();
+    }, 1000);
+  }
+</script>
+{% endblock content %}

@@ -1,0 +1,147 @@
+{% extends 'base.html' %} 
+{% load i18n %} 
+{% load static %}
+{% load socialaccount %} 
+{% block title %}{% trans "SignUp" %}{% endblock %} 
+{% block content %}
+<div
+  class="breadcrumbs"
+  style="background-image: url({% static 'images/bread-bg/banner-bg.svg' %})"
+>
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 offset-lg-3 col-md-12 col-12">
+        <div class="breadcrumbs-content">
+          <h1 class="page-title">{% trans "Create A New Account" %}</h1>
+          <ul class="breadcrumb-nav">
+            <li><a href="{% url 'home' %}">Home</a></li>
+            <li>{% trans "SignUp" %}</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="account-login section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 offset-lg-3 col-md-10 offset-md-1 col-12">
+        <form
+          class="card login-form inner-content"
+          action="{% url 'account_signup' %}"
+          method="POST"
+        >
+          {% csrf_token %}
+          <div class="card-body">
+            <div class="title">
+              <h3>{% trans 'Sign Up Now' %}</h3>
+              <p>{% trans 'Use the form below to create your new account.' %}</p>
+            </div>
+            <div class="form-errors px-3">
+              {% for field in form %}
+              <div class="form-error">
+                {% for error in field.errors %}
+                <p style="color: red">{{ error }}</p>
+                {% endfor %}
+              </div>
+              {% endfor %}
+            </div>
+            <div class="input-head">
+              <div class="row">
+                <div class="col-12 d-flex gap-2">
+                  <div class="form-group input-group">
+                    <label><i class="lni lni-user"></i></label>
+                    <input
+                      class="form-control"
+                      name="first_name"
+                      type="text"
+                      placeholder="First name"
+                      required
+                    />
+                  </div>
+                  <div class="form-group input-group">
+                    <label><i class="lni lni-user"></i></label>
+                    <input
+                      class="form-control"
+                      name="last_name"
+                      type="text"
+                      placeholder="Last name"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-lg-6 col-12">
+                  <div class="form-group input-group">
+                    <label><svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewBox="0 0 24 24" fill="none">
+                      <path d="M15.5 12C15.5 13.933 13.933 15.5 12 15.5C10.067 15.5 8.5 13.933 8.5 12C8.5 10.067 10.067 8.5 12 8.5C13.933 8.5 15.5 10.067 15.5 12ZM15.5 12C15.5 12.9665 16.2835
+                       13.75 17.25 13.75C18.2165 13.75 19 12.9665 19 12C19 8.13401 15.866 5 12 5C8.13401 5 5 8.13401 5 12C5 15.866 8.13401 19 12
+                        19C14.0907 19 15.9673 18.0834 17.25 16.6302" stroke="#464455" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg></label>
+                    <input
+                      class="form-control"
+                      name="username"
+                      type="text"
+                      placeholder="Your username"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-lg-6 col-12">
+                  <div class="form-group input-group">
+                    <label><i class="lni lni-envelope"></i></label>
+                    <input
+                      class="form-control"
+                      name="email"
+                      type="email"
+                      placeholder="Your email"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div class="form-group input-group">
+                    <label><i class="lni lni-mobile"></i></label>
+                    <input
+                      class="form-control"
+                      name="phone_number"
+                      type="tel"
+                      placeholder="Your phone number"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="form-group input-group">
+                <label><i class="lni lni-lock-alt"></i></label>
+                <input
+                  class="form-control"
+                  name="password1"
+                  type="password"
+                  placeholder="Your password"
+                  required
+                />
+              </div>
+              <div class="form-group input-group">
+                <label><i class="lni lni-lock-alt"></i></label>
+                <input
+                  class="form-control"
+                  name="password2"
+                  type="password"
+                  placeholder="Confirm password"
+                  required
+                />
+              </div>
+            </div>
+            <div class="button">
+              <button class="btn" type="submit">{% trans 'Create Account' %}</button>
+            </div>
+            <h4 class="create-account">
+              {% trans 'Already have an account?' %} <a href="{{ login_url }}">{% trans 'Sign In' %}</a>
+            </h4>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
