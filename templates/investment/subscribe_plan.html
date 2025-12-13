@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Subscribe to {{ plan.name }}{% endblock title %}
+
+{% block css %}
+<style>
+  .subscribe-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 40px;
+  }
+
+  .subscribe-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .form-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .form-section {
+    margin-bottom: 30px;
+  }
+
+  .form-section h4 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+  }
+
+  .form-group {
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  input[type="number"],
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+
+  input[type="number"]:focus,
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  select:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .help-text {
+    font-size: 0.85rem;
+    color: #666;
+    margin-top: 5px;
+  }
+
+  .error-message {
+    color: #dc3545;
+    font-size: 0.85rem;
+    margin-top: 5px;
+  }
+
+  .plan-summary {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    margin-bottom: 30px;
+  }
+
+  .summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .summary-item:last-child {
+    border-bottom: none;
+  }
+
+  .summary-label {
+    color: #666;
+    font-weight: 500;
+  }
+
+  .summary-value {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .promotion-alert {
+    background: linear-gradient(135deg, #f5a623 0%, #f5a623 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+
+  .promotion-alert h5 {
+    margin: 0 0 10px 0;
+    font-weight: 600;
+  }
+
+  .promotion-alert p {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+
+  .btn-subscribe {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-subscribe:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+  }
+
+  .btn-cancel {
+    width: 100%;
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #d0d0d0;
+  }
+
+  .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 30px;
+  }
+
+  .warning-box h5 {
+    margin-top: 0;
+    font-weight: 600;
+  }
+
+  .back-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+    color: white;
+  }
+
+  .monthly-contrib-section {
+    background: #f0f4ff;
+    padding: 15px;
+    border-radius: 8px;
+  }
+
+  .monthly-contrib-section label {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+  }
+
+  .checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .checkbox-wrapper input[type="checkbox"] {
+    width: auto;
+    cursor: pointer;
+  }
+
+  .checkbox-wrapper label {
+    margin: 0;
+    cursor: pointer;
+  }
+
+  .success-alert {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .error-alert {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="subscribe-header">
+  <div class="container">
+    <a href="{% url 'plan_detail' plan.id %}" class="back-link">
+      <i class="fas fa-chevron-left"></i> Back to Plan
+    </a>
+    <h1><i class="fas fa-rocket"></i> Subscribe to {{ plan.name }}</h1>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="form-container">
+    {% if messages %}
+    {% for message in messages %}
+      <div class="{% if message.tags %}{{ message.tags }}{% endif %}-alert" role="alert">
+        {{ message }}
+      </div>
+    {% endfor %}
+    {% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="error-alert">
+      {% for error in form.non_field_errors %}
+        <p style="margin: 0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Plan Summary -->
+    <div class="plan-summary">
+      <h5 style="margin-top: 0; color: #333;">Plan Overview</h5>
+      <div class="summary-item">
+        <span class="summary-label">Plan Name</span>
+        <span class="summary-value">{{ plan.name }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Risk Level</span>
+        <span class="summary-value">{{ plan.get_risk_level_display }}</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Expected Return</span>
+        <span class="summary-value" style="color: #56ab2f;">{{ plan.expected_return }}%</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Management Fee</span>
+        <span class="summary-value">{{ plan.management_fee }}%</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-label">Investment Duration</span>
+        <span class="summary-value">{{ plan.investment_duration }} months</span>
+      </div>
+    </div>
+
+    <!-- Promotions -->
+    {% if promotions %}
+    <div class="promotion-alert">
+      <h5><i class="fas fa-gift"></i> Available Promotions</h5>
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        {% for promo in promotions %}
+        <li style="margin-bottom: 8px;">
+          <i class="fas fa-check"></i>
+          {% if promo.grant_type == 'percentage' %}
+            Get {{ promo.grant_amount }}% bonus on your investment
+          {% else %}
+            Get ${{ promo.grant_amount|floatformat:2 }} bonus
+          {% endif %}
+          (Min: ${{ promo.minimum_investment_required|floatformat:2 }})
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <!-- Investment Amount Section -->
+      <div class="form-section">
+        <h4><i class="fas fa-dollar-sign"></i> Investment Amount</h4>
+        
+        <div class="form-group">
+          <label for="id_initial_investment">Initial Investment Amount *</label>
+          {{ form.initial_investment }}
+          <div class="help-text">
+            Minimum: ${{ plan.min_investment|floatformat:2 }} | Recommended: ${{ plan.recommended_investment|floatformat:2 }}
+          </div>
+          {% if form.initial_investment.errors %}
+            {% for error in form.initial_investment.errors %}
+              <div class="error-message">{{ error }}</div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Monthly Contribution Section -->
+      <div class="form-section">
+        <h4><i class="fas fa-repeat"></i> Monthly Contributions (Optional)</h4>
+        
+        <div class="monthly-contrib-section">
+          <div class="checkbox-wrapper">
+            <input type="checkbox" id="id_setup_monthly" name="setup_monthly" value="on">
+            <label for="id_setup_monthly">Set up automatic monthly contributions</label>
+          </div>
+
+          <div class="form-group" id="monthly-amount-group" style="display: none;">
+            <label for="id_monthly_contribution">Monthly Amount</label>
+            {{ form.monthly_contribution }}
+            <div class="help-text">
+              Amount will be automatically deducted monthly to build your investment over time.
+            </div>
+            {% if form.monthly_contribution.errors %}
+              {% for error in form.monthly_contribution.errors %}
+                <div class="error-message">{{ error }}</div>
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Agreement Section -->
+      <div class="form-section">
+        <h4><i class="fas fa-file-contract"></i> Agreement</h4>
+        
+        <div class="checkbox-wrapper">
+          <input type="checkbox" id="id_terms_agreed" name="terms_agreed" value="on" required>
+          <label for="id_terms_agreed">
+            I agree to the investment terms and conditions and understand the risks
+          </label>
+        </div>
+        {% if form.terms_agreed.errors %}
+          {% for error in form.terms_agreed.errors %}
+            <div class="error-message">{{ error }}</div>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Submit Buttons -->
+      <button type="submit" class="btn-subscribe">
+        <i class="fas fa-check-circle"></i> Complete Subscription
+      </button>
+      <a href="{% url 'plan_detail' plan.id %}" class="btn-cancel" style="text-decoration: none; display: block; text-align: center;">
+        Cancel
+      </a>
+    </form>
+
+    <!-- Warning Box -->
+    <div class="warning-box">
+      <h5><i class="fas fa-exclamation-triangle"></i> Important Information</h5>
+      <ul style="margin: 0; padding-left: 20px;">
+        <li>Your investment will be managed according to the asset allocation specified in the plan</li>
+        <li>Early withdrawal may incur a {{ plan.early_withdrawal_penalty }}% penalty</li>
+        <li>Performance is not guaranteed and subject to market conditions</li>
+        <li>You can pause or resume your subscription at any time</li>
+        <li>Monthly contributions can be modified or cancelled anytime</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Show/hide monthly contribution field based on checkbox
+  document.getElementById('id_setup_monthly').addEventListener('change', function() {
+    const monthlyGroup = document.getElementById('monthly-amount-group');
+    if (this.checked) {
+      monthlyGroup.style.display = 'block';
+    } else {
+      monthlyGroup.style.display = 'none';
+    }
+  });
+</script>
+{% endblock content %}

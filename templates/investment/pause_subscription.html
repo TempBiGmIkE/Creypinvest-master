@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pause Subscription - {{ subscription.plan.name }}{% endblock title %}
+
+{% block css %}
+<style>
+  .confirmation-header {
+    background: linear-gradient(135deg, #f5a623 0%, #f5a623 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 40px;
+  }
+
+  .confirmation-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .confirmation-container {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .confirmation-icon {
+    font-size: 4rem;
+    color: #f5a623;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .confirmation-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .confirmation-text {
+    color: #666;
+    text-align: center;
+    margin-bottom: 30px;
+    line-height: 1.6;
+  }
+
+  .plan-info {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #f5a623;
+    margin-bottom: 30px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    color: #666;
+    font-weight: 500;
+  }
+
+  .info-value {
+    font-weight: 600;
+    color: #333;
+  }
+
+  .warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffc107;
+    color: #856404;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+  }
+
+  .warning-box h5 {
+    margin-top: 0;
+    font-weight: 600;
+  }
+
+  .warning-box ul {
+    margin: 10px 0 0 0;
+    padding-left: 20px;
+  }
+
+  .warning-box li {
+    margin-bottom: 5px;
+  }
+
+  .button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+  }
+
+  .btn-confirm {
+    background: #f5a623;
+    color: white;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .btn-confirm:hover {
+    background: #d68d0f;
+    transform: translateY(-2px);
+  }
+
+  .btn-cancel {
+    background: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-cancel:hover {
+    background: #d0d0d0;
+  }
+
+  .back-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .back-link:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 600px) {
+    .button-group {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="confirmation-header">
+  <div class="container">
+    <a href="{% url 'subscription_detail' subscription.id %}" class="back-link">
+      <i class="fas fa-chevron-left"></i> Back
+    </a>
+    <h1><i class="fas fa-pause"></i> Pause Subscription</h1>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="confirmation-container">
+    <div class="confirmation-icon">
+      <i class="fas fa-pause-circle"></i>
+    </div>
+
+    <h2 class="confirmation-title">Pause Your Subscription?</h2>
+    
+    <p class="confirmation-text">
+      You are about to pause your subscription to {{ subscription.plan.name }}. 
+      Your investment will be retained but will no longer accrue returns until you resume.
+    </p>
+
+    <!-- Subscription Info -->
+    <div class="plan-info">
+      <h5 style="margin-top: 0;">Subscription Details</h5>
+      <div class="info-item">
+        <span class="info-label">Plan Name</span>
+        <span class="info-value">{{ subscription.plan.name }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Current Value</span>
+        <span class="info-value">${{ subscription.current_value|floatformat:2 }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Status</span>
+        <span class="info-value">{{ subscription.get_status_display }}</span>
+      </div>
+      {% if subscription.monthly_contribution %}
+      <div class="info-item">
+        <span class="info-label">Monthly Contribution</span>
+        <span class="info-value">${{ subscription.monthly_contribution|floatformat:2 }}</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Warning -->
+    <div class="warning-box">
+      <h5><i class="fas fa-exclamation-triangle"></i> What Happens When You Pause?</h5>
+      <ul>
+        <li>Your investment will be held but will not earn returns during the pause period</li>
+        {% if subscription.monthly_contribution %}
+        <li>Monthly contributions of ${{ subscription.monthly_contribution|floatformat:2 }} will be suspended</li>
+        {% endif %}
+        <li>You can resume your subscription anytime without penalties</li>
+        <li>Early withdrawal penalties still apply if you withdraw while paused</li>
+        <li>You cannot add contributions to a paused subscription</li>
+      </ul>
+    </div>
+
+    <!-- Confirmation Form -->
+    <form method="post">
+      {% csrf_token %}
+      
+      <div class="button-group">
+        <button type="submit" class="btn-confirm">
+          <i class="fas fa-check"></i> Yes, Pause Subscription
+        </button>
+        <a href="{% url 'subscription_detail' subscription.id %}" class="btn-cancel">
+          <i class="fas fa-times"></i> Cancel
+        </a>
+      </div>
+    </form>
+
+    <!-- Info Message -->
+    <div style="background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; padding: 15px; border-radius: 8px; margin-top: 20px; text-align: center;">
+      <strong>Good News!</strong> You can resume this subscription at any time without losing your investment or resetting your account.
+    </div>
+  </div>
+</div>
+{% endblock content %}

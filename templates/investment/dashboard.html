@@ -1,0 +1,660 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Investment Dashboard{% endblock title %}
+
+{% block css %}
+<style>
+  .dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 40px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+  }
+
+  .dashboard-subtext {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin: 0;
+  }
+
+  .portfolio-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-top: 4px solid #667eea;
+  }
+
+  .stat-label {
+    color: #666;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .stat-change {
+    font-size: 0.9rem;
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  .stat-change.positive {
+    color: #56ab2f;
+  }
+
+  .stat-change.negative {
+    color: #eb3349;
+  }
+
+  .stat-change.neutral {
+    color: #999;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 40px 0 20px 0;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title i {
+    color: #667eea;
+  }
+
+  .subscription-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+  }
+
+  .subscription-card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+
+  .subscription-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .subscription-header.paused {
+    background: linear-gradient(135deg, #f5a623 0%, #f5a623 100%);
+  }
+
+  .subscription-header.completed {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+  }
+
+  .subscription-info {
+    flex: 1;
+  }
+
+  .subscription-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .subscription-status {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin: 5px 0 0 0;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  .subscription-body {
+    padding: 25px;
+  }
+
+  .sub-metric {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .sub-metric:last-child {
+    border-bottom: none;
+  }
+
+  .sub-metric-label {
+    color: #666;
+    font-weight: 500;
+  }
+
+  .sub-metric-value {
+    font-weight: 700;
+    color: #333;
+  }
+
+  .sub-metric-value.positive {
+    color: #56ab2f;
+  }
+
+  .sub-metric-value.negative {
+    color: #eb3349;
+  }
+
+  .subscription-footer {
+    padding: 20px 25px;
+    background: #f9f9f9;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.9rem;
+  }
+
+  .btn-primary {
+    background: #667eea;
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background: #5568d3;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #e0e0e0;
+    color: #333;
+  }
+
+  .btn-secondary:hover {
+    background: #d0d0d0;
+    color: #333;
+  }
+
+  .btn-danger {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .btn-danger:hover {
+    background: #f5c6cb;
+    color: #721c24;
+  }
+
+  .btn-success {
+    background: #d4edda;
+    color: #155724;
+  }
+
+  .btn-success:hover {
+    background: #c3e6cb;
+    color: #155724;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .empty-state-icon {
+    font-size: 4rem;
+    color: #ccc;
+    margin-bottom: 20px;
+  }
+
+  .empty-state h3 {
+    color: #999;
+    margin-bottom: 10px;
+  }
+
+  .empty-state p {
+    color: #aaa;
+    margin-bottom: 20px;
+  }
+
+  .empty-state a {
+    background: #667eea;
+    color: white;
+    padding: 10px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
+  .empty-state a:hover {
+    background: #5568d3;
+    color: white;
+  }
+
+  .contribution-history {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .contribution-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .contribution-table th {
+    background: #f9f9f9;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #ddd;
+  }
+
+  .contribution-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .contribution-table tr:hover {
+    background: #f9f9f9;
+  }
+
+  .status-completed {
+    background: #d4edda;
+    color: #155724;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status-failed {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .allocation-chart {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  .chart-placeholder {
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 8px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    margin: 20px 0;
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 40px;
+  }
+
+  .quick-action-btn {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+  }
+
+  .quick-action-btn:hover {
+    background: #667eea;
+    color: white;
+  }
+
+  .quick-action-btn i {
+    font-size: 1.5rem;
+  }
+
+  .login-prompt {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .login-prompt h3 {
+    margin-bottom: 15px;
+  }
+
+  .login-prompt a {
+    background: white;
+    color: #667eea;
+    padding: 10px 30px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 20px;
+  }
+
+  .login-prompt a:hover {
+    color: #667eea;
+    opacity: 0.9;
+  }
+
+  .roi-display {
+    font-size: 1.8rem;
+    font-weight: 700;
+  }
+
+  .roi-display.positive {
+    color: #56ab2f;
+  }
+
+  .roi-display.negative {
+    color: #eb3349;
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+{% if not user.is_authenticated %}
+<div class="dashboard-header">
+  <div class="container">
+    <h1><i class="fas fa-chart-line"></i> Investment Dashboard</h1>
+    <p class="dashboard-subtext">Sign in to view your investment portfolio</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="login-prompt">
+    <h3><i class="fas fa-lock"></i> Authentication Required</h3>
+    <p>You need to be logged in to view your investment dashboard and manage your portfolio.</p>
+    <a href="{% url 'account_login' %}"><i class="fas fa-sign-in-alt"></i> Sign In Now</a>
+  </div>
+</div>
+
+{% else %}
+
+<div class="dashboard-header">
+  <div class="container">
+    <h1><i class="fas fa-chart-line"></i> Your Investment Dashboard</h1>
+    <p class="dashboard-subtext">Welcome back, {{ user.first_name|default:user.username }}! Here's your portfolio overview.</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <!-- Portfolio Overview Stats -->
+  <div class="portfolio-overview">
+    <div class="stat-card">
+      <div class="stat-label"><i class="fas fa-wallet"></i> Total Invested</div>
+      <div class="stat-value">${{ total_invested|floatformat:2 }}</div>
+      <div class="stat-change neutral">
+        Across {{ subscription_count }} plan{{ subscription_count|pluralize }}
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label"><i class="fas fa-piggy-bank"></i> Current Value</div>
+      <div class="stat-value">${{ current_value|floatformat:2 }}</div>
+      <div class="stat-change {% if total_gain >= 0 %}positive{% else %}negative{% endif %}">
+        {% if total_gain >= 0 %}
+          <i class="fas fa-arrow-up"></i> +${{ total_gain|floatformat:2 }}
+        {% else %}
+          <i class="fas fa-arrow-down"></i> -${{ total_gain|floatformat:2|cut:'-' }}
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label"><i class="fas fa-percentage"></i> Overall ROI</div>
+      <div class="stat-value roi-display {% if overall_roi >= 0 %}positive{% else %}negative{% endif %}">
+        {{ overall_roi|floatformat:1 }}%
+      </div>
+      <div class="stat-change neutral">
+        <small>Return on Investment</small>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label"><i class="fas fa-repeat"></i> Monthly Contributions</div>
+      <div class="stat-value">${{ monthly_contributions|floatformat:2 }}</div>
+      <div class="stat-change neutral">
+        Automatic contributions
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div style="margin-bottom: 40px;">
+    <h3 style="margin-bottom: 15px; color: #333;">Quick Actions</h3>
+    <div class="quick-actions">
+      <a href="{% url 'investment_plans_browse' %}" class="quick-action-btn">
+        <i class="fas fa-plus-circle"></i> Start New Plan
+      </a>
+      <a href="{% url 'investment_plans_browse' %}" class="quick-action-btn">
+        <i class="fas fa-star"></i> View All Plans
+      </a>
+      <a href="#subscriptions" class="quick-action-btn">
+        <i class="fas fa-list"></i> My Investments
+      </a>
+    </div>
+  </div>
+
+  <!-- Active Subscriptions -->
+  <h2 class="section-title" id="subscriptions">
+    <i class="fas fa-check-circle"></i> Your Investments
+  </h2>
+
+  {% if subscriptions %}
+    {% for subscription in subscriptions %}
+    <div class="subscription-card">
+      <div class="subscription-header {% if subscription.status == 'paused' %}paused{% elif subscription.status == 'completed' %}completed{% endif %}">
+        <div class="subscription-info">
+          <h3 class="subscription-name">
+            {{ subscription.plan.name }}
+          </h3>
+          <p class="subscription-status">
+            Started {{ subscription.created_at|date:"M d, Y" }}
+            <span class="status-badge">
+              {% if subscription.status == 'active' %}Active{% elif subscription.status == 'paused' %}Paused{% elif subscription.status == 'completed' %}Completed{% else %}Cancelled{% endif %}
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div class="subscription-body">
+        <div class="sub-metric">
+          <span class="sub-metric-label">Initial Investment</span>
+          <span class="sub-metric-value">${{ subscription.initial_investment|floatformat:2 }}</span>
+        </div>
+        <div class="sub-metric">
+          <span class="sub-metric-label">Current Value</span>
+          <span class="sub-metric-value">${{ subscription.current_value|floatformat:2 }}</span>
+        </div>
+        <div class="sub-metric">
+          <span class="sub-metric-label">Total Contributed</span>
+          <span class="sub-metric-value">${{ subscription.total_contributed|floatformat:2 }}</span>
+        </div>
+        <div class="sub-metric">
+          <span class="sub-metric-label">Return on Investment (ROI)</span>
+          <span class="sub-metric-value {% if subscription.calculate_roi >= 0 %}positive{% else %}negative{% endif %}">
+            {{ subscription.calculate_roi|floatformat:1 }}%
+          </span>
+        </div>
+        <div class="sub-metric">
+          <span class="sub-metric-label">Time Remaining</span>
+          <span class="sub-metric-value">
+            {% with remaining=subscription.get_duration_remaining %}
+              {% if remaining > 0 %}
+                {{ remaining }} days
+              {% else %}
+                Complete
+              {% endif %}
+            {% endwith %}
+          </span>
+        </div>
+        {% if subscription.monthly_contribution %}
+        <div class="sub-metric">
+          <span class="sub-metric-label">Monthly Contribution</span>
+          <span class="sub-metric-value">${{ subscription.monthly_contribution|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="subscription-footer">
+        <a href="{% url 'subscription_detail' subscription.id %}" class="btn-action btn-primary">
+          <i class="fas fa-eye"></i> View Details
+        </a>
+        {% if subscription.monthly_contribution %}
+        <a href="{% url 'add_contribution' subscription.id %}" class="btn-action btn-primary">
+          <i class="fas fa-plus"></i> Add Contribution
+        </a>
+        {% endif %}
+        {% if subscription.status == 'active' %}
+        <a href="{% url 'pause_subscription' subscription.id %}" class="btn-action btn-secondary" onclick="return confirm('Are you sure you want to pause this subscription?');">
+          <i class="fas fa-pause"></i> Pause
+        </a>
+        {% elif subscription.status == 'paused' %}
+        <a href="{% url 'resume_subscription' subscription.id %}" class="btn-action btn-success">
+          <i class="fas fa-play"></i> Resume
+        </a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-icon">
+      <i class="fas fa-inbox"></i>
+    </div>
+    <h3>No Active Investments</h3>
+    <p>You haven't subscribed to any investment plans yet. Start building your portfolio now!</p>
+    <a href="{% url 'investment_plans_browse' %}" class="btn">
+      <i class="fas fa-rocket"></i> Explore Plans
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- Contribution History Section -->
+  {% if recent_contributions %}
+  <div class="contribution-history">
+    <h2 class="section-title" style="margin-top: 0;">
+      <i class="fas fa-history"></i> Recent Contributions
+    </h2>
+    
+    <table class="contribution-table">
+      <thead>
+        <tr>
+          <th>Plan</th>
+          <th>Amount</th>
+          <th>Date</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for contribution in recent_contributions %}
+        <tr>
+          <td><strong>{{ contribution.subscription.plan.name }}</strong></td>
+          <td>${{ contribution.contribution_amount|floatformat:2 }}</td>
+          <td>{{ contribution.scheduled_date|date:"M d, Y" }}</td>
+          <td>
+            {% if contribution.status == 'completed' %}
+              <span class="status-completed"><i class="fas fa-check"></i> Completed</span>
+            {% elif contribution.status == 'pending' %}
+              <span class="status-pending"><i class="fas fa-clock"></i> Pending</span>
+            {% else %}
+              <span class="status-failed"><i class="fas fa-times"></i> Failed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+
+  <!-- Portfolio Information -->
+  <div style="background: #f0f4ff; padding: 20px; border-radius: 12px; margin-top: 40px;">
+    <h4 style="margin-top: 0;">💡 Portfolio Tips</h4>
+    <ul style="margin: 0; color: #666;">
+      <li>Diversification across asset classes helps manage risk</li>
+      <li>Dollar-cost averaging through monthly contributions can reduce market volatility impact</li>
+      <li>Review your portfolio quarterly to ensure it still matches your financial goals</li>
+      <li>Early withdrawal may incur penalties - check your plan details before withdrawing</li>
+      <li>Consider rebalancing your portfolio if your risk tolerance changes</li>
+    </ul>
+  </div>
+</div>
+
+{% endif %}
+{% endblock content %}
