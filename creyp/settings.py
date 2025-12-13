@@ -15,8 +15,8 @@ load_dotenv(BASE_DIR / ".env")
 SECRET_KEY = "#ms49akkm30r13=iutlt!lzb^u_ldb1*)u))-8mih=rh6&f32_"
 
 # SECURITY WARNING: don't run with debug turned on in production!bigmike commnent out the s
-DEBUG = os.getenv("DEBUG",False)
-# DEBUG = "True" in os.getenv("DEBUG")
+# DEBUG = os.getenv("DEBUG",False)
+DEBUG = "True" in os.getenv("DEBUG")
 USE_S3 =  os.getenv("USE_S3",False)
 
 ALLOWED_HOSTS = ["*"]
@@ -195,17 +195,22 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
-# STMP
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
-DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
+# STMP / Email settings
+# Use console backend during development to avoid SMTP connection errors
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", "webmaster@localhost")
+else:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "smtp.gmail.com"
+    EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
+    DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER")
+    EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-EMAIL_USE_TLS = False
-EMAIL_PORT = 465
-EMAIL_USE_SSL = True
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
+    EMAIL_USE_TLS = False
+    EMAIL_PORT = 465
+    EMAIL_USE_SSL = True
+    # EMAIL_PORT = 587
+    # EMAIL_USE_TLS = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"

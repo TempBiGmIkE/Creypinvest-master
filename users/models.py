@@ -39,6 +39,8 @@ class Profile(models.Model):
     refer_clicks = models.IntegerField(default=0, blank=True, null=True)
     refers = models.ManyToManyField(User, related_name="refers", blank=True)
     ip_address = models.CharField(max_length=100, blank=True, null=True)
+    # verification level: 0 = none, 1 = basic KYC, 2 = financials, 3 = full (loan agreements + documents)
+    verification_level = models.IntegerField(default=0)
 
     def __str__(self):
         return self.user.username
@@ -56,6 +58,26 @@ class Profile(models.Model):
             super().save(*args, **kwargs)
             if self.image.storage.exists(self.image.name):
                 image_resize(self.image, 512, 512)
+        else:
+            super().save(*args, **kwargs)
+
+    def update_verification_level(self):
+        """Compute verification level based on approved KYC documents."""
+        # Import here to avoid circular import at module import time
+        try:
+            docs = self.kycdocument_set.filter(status='approved')
+            types = set(d.document_type for d in docs)
+            level = 0
+            if 'id' in types:
+                level = 1
+            if 'financial' in types:
+                level = max(level, 2)
+            if 'loan' in types:
+                level = max(level, 3)
+            self.verification_level = level
+            self.save()
+        except Exception:
+            pass
 
 
 class Wallet(models.Model):
@@ -113,6 +135,52 @@ class AdminTransaction(models.Model):
             return f"{self.wallet.btc_address} debited ${self.amount}"
         else:
             return f"{self.wallet.btc_address} transfered ${self.amount}"
+
+
+DOCUMENT_TYPES = (
+    ("id", "Identity Document"),
+    ("financial", "Financial Records"),
+    ("loan", "Loan Agreement"),
+    ("other", "Other"),
+)
+
+DOC_STATUS = (
+    ("pending", "pending"),
+    ("approved", "approved"),
+    ("rejected", "rejected"),
+)
+
+
+class KycDocument(models.Model):
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    document_type = models.CharField(max_length=20, choices=DOCUMENT_TYPES)
+    file = models.FileField(upload_to="kyc/%Y/%m/%d/")
+    notes = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=DOC_STATUS, default="pending")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-uploaded_at"]
+
+    def __str__(self):
+        return f"{self.profile.user.username} - {self.document_type} ({self.status})"
+
+    def approve(self):
+        self.status = "approved"
+        self.save()
+        # Update profile verification level when a doc is approved
+        try:
+            self.profile.update_verification_level()
+        except Exception:
+            pass
+
+    def reject(self):
+        self.status = "rejected"
+        self.save()
+        try:
+            self.profile.update_verification_level()
+        except Exception:
+            pass
 
 @receiver(post_save, sender=User)
 def update_profile_signal(sender, instance, created, **kwargs):

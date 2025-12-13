@@ -13,9 +13,9 @@ def dashboard_home_view(request):
         if not Wallet.objects.filter(user=request.user.profile):
             Wallet.objects.create(user=request.user.profile)
         qs = Wallet.objects.filter(user=request.user.profile).first()
-        bal = qs.balance.split(".")
+        bal = str(qs.balance).split(".")
         first_bal = bal[0]
-        second_bal = bal[1]
+        second_bal = bal[1] if len(bal) > 1 else "00"
         transactions = Transaction.objects.filter(wallet=request.user.profile.wallet)
         amount_invested = float(qs.amount_invested)
         if amount_invested == 0:
@@ -40,7 +40,7 @@ def dashboard_home_view(request):
         }
         return render(request, "dashboard/dashboard_home.html", context)
     else:
-        redirect("/auth/account/login?next=/dashboard/")
+        return redirect("/auth/account/login?next=/dashboard/")
 
 
 @update_user_ip
@@ -56,7 +56,7 @@ def dashboard_profile_view(request):
         }
         return render(request, "dashboard/dashboard_profile.html", context)
     else:
-        redirect("/auth/account/login?next=/dashboard/profile/")
+        return redirect("/auth/account/login?next=/dashboard/profile/")
 
 
 @update_user_ip
@@ -66,6 +66,16 @@ def dashboard_profile_auth_view(request):
         profile_image = form.get("profile_image")
         if "profile_image" in request.FILES:
             profile_image = request.FILES["profile_image"]
+        # KYC / documents
+        kyc_file = None
+        financial_file = None
+        loan_file = None
+        if "kyc_doc" in request.FILES:
+            kyc_file = request.FILES["kyc_doc"]
+        if "financial_doc" in request.FILES:
+            financial_file = request.FILES["financial_doc"]
+        if "loan_doc" in request.FILES:
+            loan_file = request.FILES["loan_doc"]
         full_name = form.get("full_name").strip()
         full_name_list = full_name.split(" ")
         full_name = []
@@ -110,6 +120,19 @@ def dashboard_profile_auth_view(request):
         user_profile.gender = gender
         user_profile.country = country
 
+        # Handle KYC uploads (create KycDocument records)
+        try:
+            from users.models import KycDocument
+            if kyc_file:
+                KycDocument.objects.create(profile=user_profile, document_type="id", file=kyc_file)
+            if financial_file:
+                KycDocument.objects.create(profile=user_profile, document_type="financial", file=financial_file)
+            if loan_file:
+                KycDocument.objects.create(profile=user_profile, document_type="loan", file=loan_file)
+        except Exception:
+            # If anything goes wrong creating documents, ignore to not break profile update
+            pass
+
         user_.save()
         user_profile.save()
 
@@ -126,9 +149,9 @@ def dashboard_payments_view(request):
         if not Wallet.objects.filter(user=request.user.profile):
             Wallet.objects.create(user=request.user.profile)
         qs = Wallet.objects.filter(user=request.user.profile).first()
-        bal = qs.balance.split(".")
+        bal = str(qs.balance).split(".")
         first_bal = bal[0]
-        second_bal = bal[1]
+        second_bal = bal[1] if len(bal) > 1 else "00"
         transactions = Transaction.objects.filter(wallet=request.user.profile.wallet)
         amount_invested = float(qs.amount_invested)
         if amount_invested == 0:
@@ -152,7 +175,7 @@ def dashboard_payments_view(request):
         }
         return render(request, "dashboard/dashboard_payments.html", context)
     else:
-        redirect("/auth/account/login?next=/dashboard/payments/")
+        return redirect("/auth/account/login?next=/dashboard/payments/")
 
 
 @update_user_ip
@@ -171,4 +194,4 @@ def dashboard_referral_view(request):
         }
         return render(request, "dashboard/dashboard_referral.html", context)
     else:
-        redirect("/auth/account/login?next=/dashboard/referral/")
+        return redirect("/auth/account/login?next=/dashboard/referral/")

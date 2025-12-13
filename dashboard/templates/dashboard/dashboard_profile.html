@@ -46,6 +46,28 @@
                               class="form-control ps-0 form-control-line">
                       </div>
                   </div>
+                                    <!-- KYC Verification Section -->
+                                    <div class="form-group mt-4 p-3" style="border:1px dashed #e0e0e0; border-radius:6px;">
+                                        <h5>Account Verification</h5>
+                                        <p class="mb-2">Current verification level: <strong>{{ user.profile.verification_level }}</strong></p>
+                                        {% if user.profile.kycdocument_set.all %}
+                                        <div class="mb-2">
+                                            <h6>Uploaded Documents</h6>
+                                            <ul>
+                                                {% for doc in user.profile.kycdocument_set.all %}
+                                                    <li>{{ doc.get_document_type_display }} — <a href="{{ doc.file.url }}" target="_blank">Download</a> — <strong>{{ doc.status }}</strong></li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                        <p class="mb-2">Upload identity document (driver's licence / passport) for basic KYC:</p>
+                                        <input type="file" name="kyc_doc" accept="image/*,application/pdf" class="form-control mb-2" />
+                                        <p class="mb-2">Upload financial records (bank statements) to access loans/grants:</p>
+                                        <input type="file" name="financial_doc" accept="application/pdf,image/*" class="form-control mb-2" />
+                                        <p class="mb-2">Upload signed loan agreement (if applicable) to reach full verification:</p>
+                                        <input type="file" name="loan_doc" accept="application/pdf" class="form-control mb-2" />
+                                        <small class="text-muted">Accepted formats: PDF, JPG, PNG. Documents will be reviewed and you will be notified when approved. Higher verification unlocks additional company products (loans, grants, courses, signals groups).</small>
+                                    </div>
                   <div class="form-group">
                     <label class="col-md-12 mb-0">Full Name</label>
                     <div class="col-md-12">

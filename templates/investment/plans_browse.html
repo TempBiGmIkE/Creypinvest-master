@@ -1,0 +1,432 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Investment Plans{% endblock title %}
+
+{% block css %}
+<style>
+  .plan-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+  }
+
+  .plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .plan-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .plan-header.risk-low {
+    background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+  }
+
+  .plan-header.risk-moderate {
+    background: linear-gradient(135deg, #f5a623 0%, #f5a623 100%);
+  }
+
+  .plan-header.risk-high {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+  }
+
+  .plan-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .plan-category {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-top: 5px;
+  }
+
+  .plan-body {
+    padding: 20px;
+  }
+
+  .plan-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  .plan-stat:last-child {
+    border-bottom: none;
+  }
+
+  .stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .stat-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .stat-return {
+    color: #56ab2f;
+  }
+
+  .stat-min {
+    color: #667eea;
+  }
+
+  .risk-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+
+  .risk-badge.low {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  .risk-badge.moderate {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+
+  .risk-badge.high {
+    background-color: #f8d7da;
+    color: #721c24;
+  }
+
+  .plan-footer {
+    padding: 15px 20px;
+    background-color: #f9f9f9;
+    border-top: 1px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+  }
+
+  .btn-view {
+    flex: 1;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+  }
+
+  .btn-view:hover {
+    background-color: #5568d3;
+    text-decoration: none;
+    color: white;
+  }
+
+  .filters-section {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  .filter-group {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .filter-input {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-input label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #333;
+  }
+
+  .filter-input select,
+  .filter-input input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 0.95rem;
+  }
+
+  .filter-input select:focus,
+  .filter-input input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  }
+
+  .btn-filter {
+    background-color: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-filter:hover {
+    background-color: #5568d3;
+  }
+
+  .btn-reset {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 10px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .btn-reset:hover {
+    background-color: #d0d0d0;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 60px 20px;
+    color: #999;
+  }
+
+  .no-results-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+  }
+
+  .user-subscriptions {
+    background: #f0f4ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+  .user-subscriptions h6 {
+    color: #667eea;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .subscription-tag {
+    display: inline-block;
+    background: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    margin-right: 10px;
+    margin-bottom: 5px;
+    border-left: 3px solid #667eea;
+  }
+
+  .page-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 40px 0;
+    margin-bottom: 40px;
+  }
+
+  .page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  .page-header p {
+    margin: 10px 0 0 0;
+    font-size: 1.1rem;
+    opacity: 0.95;
+  }
+</style>
+{% endblock css %}
+
+{% block content %}
+<div class="page-header">
+  <div class="container">
+    <h1><i class="fas fa-chart-line"></i> Investment Plans</h1>
+    <p>Choose from our diversified portfolio of investment plans tailored to your financial goals</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  {% if user.is_authenticated %}
+  <div class="user-subscriptions">
+    <h6><i class="fas fa-check-circle"></i> Your Active Plans</h6>
+    {% if user_subscriptions %}
+      {% for sub in user_subscriptions %}
+      <span class="subscription-tag">
+        <strong>{{ sub.plan.name }}</strong> - ${{ sub.current_value|floatformat:0 }} value
+      </span>
+      {% endfor %}
+    {% else %}
+      <p style="margin: 0; color: #667eea;">You haven't subscribed to any plans yet. Start investing below!</p>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="alert alert-info" role="alert">
+    <i class="fas fa-info-circle"></i> <a href="{% url 'account_login' %}">Sign in</a> to start investing in our plans.
+  </div>
+  {% endif %}
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <h5 style="margin-bottom: 20px; font-weight: 700;">Filter Plans</h5>
+    <form method="get" class="filter-group">
+      <div class="filter-input" style="flex: 2;">
+        <label for="search">Search Plans</label>
+        <input 
+          type="text" 
+          id="search" 
+          name="search" 
+          placeholder="e.g., Retirement, Crypto, Education..."
+          value="{{ request.GET.search }}"
+        />
+      </div>
+
+      <div class="filter-input">
+        <label for="category">Category</label>
+        <select id="category" name="category">
+          <option value="">All Categories</option>
+          <option value="starter" {% if request.GET.category == 'starter' %}selected{% endif %}>Starter</option>
+          <option value="couples" {% if request.GET.category == 'couples' %}selected{% endif %}>Couples</option>
+          <option value="retirement" {% if request.GET.category == 'retirement' %}selected{% endif %}>Retirement</option>
+          <option value="education" {% if request.GET.category == 'education' %}selected{% endif %}>Education</option>
+          <option value="travel" {% if request.GET.category == 'travel' %}selected{% endif %}>Travel</option>
+          <option value="emergency" {% if request.GET.category == 'emergency' %}selected{% endif %}>Emergency</option>
+          <option value="wealth" {% if request.GET.category == 'wealth' %}selected{% endif %}>Wealth Building</option>
+          <option value="crypto" {% if request.GET.category == 'crypto' %}selected{% endif %}>Crypto</option>
+        </select>
+      </div>
+
+      <div class="filter-input">
+        <label for="risk">Risk Level</label>
+        <select id="risk" name="risk_level">
+          <option value="">All Risk Levels</option>
+          <option value="low" {% if request.GET.risk_level == 'low' %}selected{% endif %}>Low Risk</option>
+          <option value="moderate" {% if request.GET.risk_level == 'moderate' %}selected{% endif %}>Moderate Risk</option>
+          <option value="high" {% if request.GET.risk_level == 'high' %}selected{% endif %}>High Risk</option>
+        </select>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn-filter">
+          <i class="fas fa-filter"></i> Filter
+        </button>
+        <a href="{% url 'investment_plans_browse' %}" class="btn-reset">
+          <i class="fas fa-redo"></i> Reset
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- Plans Grid -->
+  {% if plans %}
+  <div class="row g-4">
+    {% for plan in plans %}
+    <div class="col-lg-4 col-md-6">
+      <div class="card plan-card">
+        <div class="plan-header {% if plan.risk_level == 'low' %}risk-low{% elif plan.risk_level == 'moderate' %}risk-moderate{% else %}risk-high{% endif %}">
+          <h3 class="plan-name">
+            {% if plan.category == 'couples' %}
+              <i class="fas fa-heart"></i>
+            {% elif plan.category == 'retirement' %}
+              <i class="fas fa-calendar-alt"></i>
+            {% elif plan.category == 'education' %}
+              <i class="fas fa-graduation-cap"></i>
+            {% elif plan.category == 'travel' %}
+              <i class="fas fa-plane"></i>
+            {% elif plan.category == 'emergency' %}
+              <i class="fas fa-shield-alt"></i>
+            {% elif plan.category == 'wealth' %}
+              <i class="fas fa-crown"></i>
+            {% elif plan.category == 'crypto' %}
+              <i class="fab fa-bitcoin"></i>
+            {% else %}
+              <i class="fas fa-chart-pie"></i>
+            {% endif %}
+            {{ plan.name }}
+          </h3>
+          <p class="plan-category">{{ plan.get_category_display }}</p>
+          <span class="risk-badge {% if plan.risk_level == 'low' %}low{% elif plan.risk_level == 'moderate' %}moderate{% else %}high{% endif %}">
+            {{ plan.get_risk_level_display }} Risk
+          </span>
+        </div>
+
+        <div class="plan-body">
+          <div class="plan-stat">
+            <span class="stat-label">Expected Return</span>
+            <span class="stat-value stat-return">{{ plan.expected_return }}%</span>
+          </div>
+          <div class="plan-stat">
+            <span class="stat-label">Min. Investment</span>
+            <span class="stat-value stat-min">${{ plan.min_investment|floatformat:2 }}</span>
+          </div>
+          <div class="plan-stat">
+            <span class="stat-label">Recommended</span>
+            <span class="stat-value">${{ plan.recommended_investment|floatformat:2 }}</span>
+          </div>
+          <div class="plan-stat">
+            <span class="stat-label">Management Fee</span>
+            <span class="stat-value">{{ plan.management_fee }}%</span>
+          </div>
+          <div class="plan-stat">
+            <span class="stat-label">Duration</span>
+            <span class="stat-value">{{ plan.investment_duration }} months</span>
+          </div>
+        </div>
+
+        <div class="plan-footer">
+          <a href="{% url 'plan_detail' plan.id %}" class="btn-view">View Details</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="no-results">
+    <div class="no-results-icon">
+      <i class="fas fa-search"></i>
+    </div>
+    <h4>No Plans Found</h4>
+    <p>Try adjusting your filters or <a href="{% url 'investment_plans_browse' %}">view all plans</a></p>
+  </div>
+  {% endif %}
+
+  <!-- CTA Section -->
+  <div style="margin-top: 50px; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
+    <h3 style="margin-bottom: 15px;">Ready to Start Investing?</h3>
+    <p style="margin-bottom: 20px;">Choose a plan above and begin building your wealth today with our diversified investment options.</p>
+    {% if not user.is_authenticated %}
+    <a href="{% url 'account_login' %}" class="btn btn-light" style="padding: 12px 30px; font-weight: 600;">
+      <i class="fas fa-sign-in-alt"></i> Sign In to Invest
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock content %}
