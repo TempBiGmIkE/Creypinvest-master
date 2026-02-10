@@ -12,14 +12,25 @@ load_dotenv(BASE_DIR / ".env")
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "#ms49akkm30r13=iutlt!lzb^u_ldb1*)u))-8mih=rh6&f32_"
+SECRET_KEY = os.getenv("SECRET_KEY", "#ms49akkm30r13=iutlt!lzb^u_ldb1*)u))-8mih=rh6&f32_")
 
-# SECURITY WARNING: don't run with debug turned on in production!bigmike commnent out the s
-# DEBUG = os.getenv("DEBUG",False)
-DEBUG = "True" in os.getenv("DEBUG")
-USE_S3 =  os.getenv("USE_S3",False)
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = "True" in os.getenv("DEBUG", "False")
+USE_S3 = "True" in os.getenv("USE_S3", "False")
 
-ALLOWED_HOSTS = ["*"]
+# Vercel deployment support
+ALLOWED_HOSTS_STR = os.getenv("ALLOWED_HOSTS", "*")
+if ALLOWED_HOSTS_STR == "*":
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_STR.split(",")]
+
+# Add Vercel domains
+ALLOWED_HOSTS.extend([
+    "*.vercel.app",
+    "localhost",
+    "127.0.0.1",
+])
 LOGIN_URL = "/auth/account/login"
 LOGIN_REDIRECT_URL = "/dashboard"
 
@@ -32,6 +43,20 @@ SECURE_HSTS_PRELOAD = DEBUG == False
 SECURE_PROXY_SSL_HEADER = (
     ("HTTP_X_FORWARDED_PROTO", "https") if (DEBUG == False) else None
 )
+
+# CSRF Configuration for Vercel
+CSRF_TRUSTED_ORIGINS_STR = os.getenv("CSRF_TRUSTED_ORIGINS", "")
+if CSRF_TRUSTED_ORIGINS_STR:
+    CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in CSRF_TRUSTED_ORIGINS_STR.split(",")]
+else:
+    CSRF_TRUSTED_ORIGINS = []
+
+# Add Vercel app domains to trusted origins
+CSRF_TRUSTED_ORIGINS.extend([
+    "https://*.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:8000",
+])
 
 # Application definition
 

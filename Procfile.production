@@ -1,0 +1,5 @@
+# Procfile for Vercel, Railway, and Heroku deployment
+
+# Web dyno/process
+release: python manage.py migrate
+web: gunicorn creyp.wsgi:application --bind 0.0.0.0:$PORT --workers 4
